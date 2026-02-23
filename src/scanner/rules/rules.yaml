@@ -1,0 +1,500 @@
+rules:
+  # JavaScript/TypeScript Rules
+  - id: js-eval-usage
+    name: Dangerous eval() Usage
+    language: javascript
+    severity: critical
+    cwe: CWE-95
+    description: "Use of eval() can lead to code injection vulnerabilities"
+    patterns:
+      - eval($X)
+      - new Function($X)
+    remediation: "Use JSON.parse() for JSON data or refactor to avoid dynamic execution"
+    auto_fixable: false
+    fix_template: null
+
+  - id: js-dangerous-innerHTML
+    name: Dangerous innerHTML Assignment
+    language: javascript
+    severity: high
+    cwe: CWE-79
+    description: "Assignment to innerHTML can lead to XSS vulnerabilities"
+    patterns:
+      - $X.innerHTML = $Y
+      - $X.outerHTML = $Y
+    remediation: "Use textContent instead, or sanitize HTML with a trusted library like DOMPurify"
+    auto_fixable: false
+    fix_template: null
+
+  - id: js-dangerous-document-write
+    name: Dangerous document.write Usage
+    language: javascript
+    severity: high
+    cwe: CWE-79
+    description: "document.write can lead to XSS vulnerabilities"
+    patterns:
+      - document.write($X)
+      - document.writeln($X)
+    remediation: "Use DOM manipulation methods like createElement and appendChild instead"
+    auto_fixable: false
+    fix_template: null
+
+  - id: js-unsanitized-input
+    name: Unsanitized User Input
+    language: javascript
+    severity: high
+    cwe: CWE-20
+    description: "Direct use of user input without validation or sanitization"
+    patterns:
+      - req.query[$X]
+      - req.body[$X]
+      - req.params[$X]
+      - window.location.hash
+    remediation: "Validate and sanitize all user input before using it"
+    auto_fixable: false
+    fix_template: null
+
+  - id: js-insecure-random
+    name: Insecure Randomness
+    language: javascript
+    severity: medium
+    cwe: CWE-338
+    description: "Math.random() is not cryptographically secure"
+    patterns:
+      - Math.random()
+    remediation: "Use crypto.getRandomValues() or crypto.randomBytes() for security-sensitive operations"
+    auto_fixable: false
+    fix_template: null
+
+  - id: js-disabled-security
+    name: Disabled Security Features
+    language: javascript
+    severity: high
+    cwe: CWE-693
+    description: "Security features have been disabled"
+    patterns:
+      - "rejectUnauthorized: false"
+      - "NODE_TLS_REJECT_UNAUTHORIZED: '0'"
+      - "NODE_TLS_REJECT_UNAUTHORIZED: \"0\""
+    remediation: "Never disable certificate verification in production code"
+    auto_fixable: false
+    fix_template: null
+
+  - id: js-prototype-pollution
+    name: Prototype Pollution
+    language: javascript
+    severity: critical
+    cwe: CWE-1321
+    description: "Object property assignment can lead to prototype pollution"
+    patterns:
+      - $X[$Y] = $Z
+      - Object.assign($X, $Y)
+    remediation: "Use Object.freeze(Object.prototype) or validate property keys to prevent __proto__ and constructor access"
+    auto_fixable: false
+    fix_template: null
+
+  - id: js-child-process
+    name: Unsafe Child Process Execution
+    language: javascript
+    severity: high
+    cwe: CWE-78
+    description: "Use of exec with dynamic input can lead to command injection"
+    patterns:
+      - exec($X)
+      - execSync($X)
+      - child_process.exec($X)
+    remediation: "Use execFile or spawn with argument arrays instead of concatenating shell commands"
+    auto_fixable: false
+    fix_template: null
+
+  # Python Rules
+  - id: py-sql-injection
+    name: SQL Injection
+    language: python
+    severity: critical
+    cwe: CWE-89
+    description: "SQL injection vulnerability through string formatting in database queries"
+    patterns:
+      - cursor.execute(f"...")
+      - cursor.execute("..." % $X)
+      - cursor.execute("...".format($X))
+      - execute(f"...")
+      - execute("..." % $X)
+      - execute("...".format($X))
+    remediation: "Use parameterized queries: cursor.execute('SELECT * FROM t WHERE id = ?', (user_id,))"
+    auto_fixable: false
+    fix_template: null
+
+  - id: py-exec-usage
+    name: Dangerous exec() Usage
+    language: python
+    severity: critical
+    cwe: CWE-95
+    description: "Use of exec() can lead to arbitrary code execution"
+    patterns:
+      - exec($X)
+    remediation: "Avoid using exec(). If necessary, restrict the globals and locals parameters"
+    auto_fixable: false
+    fix_template: null
+
+  - id: py-eval-usage
+    name: Dangerous eval() Usage
+    language: python
+    severity: critical
+    cwe: CWE-95
+    description: "Use of eval() can lead to arbitrary code execution"
+    patterns:
+      - eval($X)
+    remediation: "Use ast.literal_eval() for evaluating literal expressions safely"
+    auto_fixable: true
+    fix_template: "ast.literal_eval($X)"
+
+  - id: py-pickle-load
+    name: Unsafe Pickle Usage
+    language: python
+    severity: critical
+    cwe: CWE-502
+    description: "Unpickling untrusted data can lead to arbitrary code execution"
+    patterns:
+      - pickle.load($X)
+      - pickle.loads($X)
+      - cPickle.load($X)
+      - cPickle.loads($X)
+    remediation: "Use safe serialization formats like JSON, or implement proper validation for pickle"
+    auto_fixable: false
+    fix_template: null
+
+  - id: py-subprocess-shell
+    name: Subprocess with Shell
+    language: python
+    severity: high
+    cwe: CWE-78
+    description: "Using shell=True with subprocess can lead to command injection"
+    patterns:
+      - subprocess.call($X, shell=True)
+      - subprocess.run($X, shell=True)
+      - subprocess.Popen($X, shell=True)
+      - call($X, shell=True)
+      - run($X, shell=True)
+      - Popen($X, shell=True)
+    remediation: "Use shell=False and pass commands as lists instead of strings"
+    auto_fixable: false
+    fix_template: null
+
+  - id: py-hardcoded-temp
+    name: Hardcoded Temporary File
+    language: python
+    severity: medium
+    cwe: CWE-377
+    description: "Creating temporary files in a predictable location can be insecure"
+    patterns:
+      - open("/tmp/...")
+      - open('/tmp/...')
+    remediation: "Use tempfile.mkstemp() or tempfile.NamedTemporaryFile()"
+    auto_fixable: false
+    fix_template: null
+
+  - id: py-insecure-hash
+    name: Insecure Hash Algorithm
+    language: python
+    severity: medium
+    cwe: CWE-328
+    description: "Use of weak hash algorithms (MD5, SHA1) for security purposes"
+    patterns:
+      - hashlib.md5()
+      - hashlib.sha1()
+      - md5($X)
+      - sha1($X)
+    remediation: "Use SHA-256 or stronger for security-sensitive hashing"
+    auto_fixable: true
+    fix_template: "hashlib.sha256($X)"
+
+  - id: py-yaml-load
+    name: Unsafe YAML Loading
+    language: python
+    severity: critical
+    cwe: CWE-502
+    description: "yaml.load without Loader specification can execute arbitrary code"
+    patterns:
+      - yaml.load($X)
+      - yaml.unsafe_load($X)
+    remediation: "Use yaml.safe_load() or specify a safe Loader"
+    auto_fixable: true
+    fix_template: "yaml.safe_load($X)"
+
+  - id: py-django-raw-sql
+    name: Django Raw SQL
+    language: python
+    severity: high
+    cwe: CWE-89
+    description: "Using raw SQL queries in Django can lead to SQL injection"
+    patterns:
+      - raw($X)
+      - raw("..." % $X)
+      - raw(f"...")
+    remediation: "Use Django ORM or parameterized raw queries"
+    auto_fixable: false
+    fix_template: null
+
+  - id: py-flask-debug
+    name: Flask Debug Mode Enabled
+    language: python
+    severity: high
+    cwe: CWE-489
+    description: "Running Flask with debug mode enabled in production is dangerous"
+    patterns:
+      - debug=True
+      - app.run(debug=True)
+    remediation: "Never enable debug mode in production"
+    auto_fixable: false
+    fix_template: null
+
+  # Go Rules
+  - id: go-sql-injection
+    name: SQL Injection
+    language: go
+    severity: critical
+    cwe: CWE-89
+    description: "SQL injection through string concatenation or formatting"
+    patterns:
+      - db.Query(fmt.Sprintf(...))
+      - db.Exec(fmt.Sprintf(...))
+      - db.Query("..." + $X)
+      - db.Exec("..." + $X)
+    remediation: "Use parameterized queries with placeholders"
+    auto_fixable: false
+    fix_template: null
+
+  - id: go-insecure-tls
+    name: Insecure TLS Configuration
+    language: go
+    severity: high
+    cwe: CWE-295
+    description: "TLS certificate verification has been disabled"
+    patterns:
+      - InsecureSkipVerify: true
+    remediation: "Never disable certificate verification in production"
+    auto_fixable: false
+    fix_template: null
+
+  - id: go-command-injection
+    name: Command Injection
+    language: go
+    severity: critical
+    cwe: CWE-78
+    description: "Executing commands with user input can lead to command injection"
+    patterns:
+      - exec.Command("/bin/sh", "-c", $X)
+      - exec.Command("bash", "-c", $X)
+      - exec.Command("cmd", "/C", $X)
+    remediation: "Avoid using shell execution with user input"
+    auto_fixable: false
+    fix_template: null
+
+  - id: go-race-condition
+    name: Potential Race Condition
+    language: go
+    severity: medium
+    cwe: CWE-362
+    description: "Concurrent access to shared data without proper synchronization"
+    patterns:
+      - go func() { $X }()
+    remediation: "Use sync.Mutex or channels to protect shared state"
+    auto_fixable: false
+    fix_template: null
+
+  - id: go-defer-in-loop
+    name: Defer in Loop
+    language: go
+    severity: low
+    cwe: CWE-772
+    description: "Using defer inside a loop can cause resource leaks"
+    patterns:
+      - for $X { defer $Y }
+    remediation: "Extract loop body into a function or use explicit cleanup"
+    auto_fixable: false
+    fix_template: null
+
+  - id: go-weak-rand
+    name: Weak Random Number Generation
+    language: go
+    severity: medium
+    cwe: CWE-338
+    description: "math/rand is not cryptographically secure"
+    patterns:
+      - math/rand
+      - rand.Int()
+      - rand.Seed()
+    remediation: "Use crypto/rand for security-sensitive random number generation"
+    auto_fixable: false
+    fix_template: null
+
+  # Java Rules
+  - id: java-sql-injection
+    name: SQL Injection
+    language: java
+    severity: critical
+    cwe: CWE-89
+    description: "SQL injection through string concatenation in queries"
+    patterns:
+      - executeQuery($X + $Y)
+      - executeUpdate($X + $Y)
+      - prepareStatement($X + $Y)
+    remediation: "Use PreparedStatement with parameterized queries"
+    auto_fixable: false
+    fix_template: null
+
+  - id: java-xss-scriptlet
+    name: XSS via Scriptlet
+    language: java
+    severity: high
+    cwe: CWE-79
+    description: "Using JSP scriptlets can lead to XSS vulnerabilities"
+    patterns:
+      - <%= $X %>
+      - <%=request.getParameter($X)%>
+    remediation: "Use JSTL and escape all output properly"
+    auto_fixable: false
+    fix_template: null
+
+  - id: java-deserialization
+    name: Unsafe Deserialization
+    language: java
+    severity: critical
+    cwe: CWE-502
+    description: "Deserializing untrusted data can lead to remote code execution"
+    patterns:
+      - ObjectInputStream
+      - readObject()
+    remediation: "Implement look-ahead deserialization or use safe serialization formats"
+    auto_fixable: false
+    fix_template: null
+
+  - id: java-weak-crypto
+    name: Weak Cryptography
+    language: java
+    severity: high
+    cwe: CWE-327
+    description: "Use of weak cryptographic algorithms"
+    patterns:
+      - DES
+      - "DESede"
+      - RC4
+      - AES/ECB
+    remediation: "Use AES/GCM or other authenticated encryption modes"
+    auto_fixable: false
+    fix_template: null
+
+  - id: java-path-traversal
+    name: Path Traversal
+    language: java
+    severity: high
+    cwe: CWE-22
+    description: "User input used to construct file paths can lead to directory traversal"
+    patterns:
+      - new File($X)
+      - new FileInputStream($X)
+    remediation: "Validate and sanitize file paths, use canonical paths"
+    auto_fixable: false
+    fix_template: null
+
+  # Ruby Rules
+  - id: ruby-eval-usage
+    name: Dangerous eval() Usage
+    language: ruby
+    severity: critical
+    cwe: CWE-95
+    description: "Use of eval() can lead to code injection"
+    patterns:
+      - eval($X)
+      - instance_eval($X)
+      - class_eval($X)
+    remediation: "Avoid using eval(). Use safer alternatives like send() for dynamic method calls"
+    auto_fixable: false
+    fix_template: null
+
+  - id: ruby-sql-injection
+    name: SQL Injection
+    language: ruby
+    severity: critical
+    cwe: CWE-89
+    description: "SQL injection through string interpolation"
+    patterns:
+      - execute("#{$X}")
+      - where("#{$X}")
+    remediation: "Use parameterized queries or ActiveRecord query methods"
+    auto_fixable: false
+    fix_template: null
+
+  - id: ruby-send-usage
+    name: Unsafe send() Usage
+    language: ruby
+    severity: medium
+    cwe: CWE-94
+    description: "Using send with user input can be dangerous"
+    patterns:
+      - send($X)
+      - __send__($X)
+      - public_send($X)
+    remediation: "Whitelist allowed methods when using send() with dynamic input"
+    auto_fixable: false
+    fix_template: null
+
+  # PHP Rules
+  - id: php-eval-usage
+    name: Dangerous eval() Usage
+    language: php
+    severity: critical
+    cwe: CWE-95
+    description: "Use of eval() can lead to code injection"
+    patterns:
+      - eval($X)
+    remediation: "Avoid eval(). Refactor to use safer alternatives"
+    auto_fixable: false
+    fix_template: null
+
+  - id: php-sql-injection
+    name: SQL Injection
+    language: php
+    severity: critical
+    cwe: CWE-89
+    description: "SQL injection through string concatenation"
+    patterns:
+      - mysql_query($X . $Y)
+      - mysqli_query($X, $Y)
+      - query($X . $Y)
+    remediation: "Use PDO with prepared statements"
+    auto_fixable: false
+    fix_template: null
+
+  - id: php-xss-echo
+    name: XSS via Echo
+    language: php
+    severity: high
+    cwe: CWE-79
+    description: "Direct output of user input can lead to XSS"
+    patterns:
+      - echo $_GET[$X]
+      - echo $_POST[$X]
+      - echo $_REQUEST[$X]
+      - print $_GET[$X]
+      - print $_POST[$X]
+      - print $_REQUEST[$X]
+    remediation: "Use htmlspecialchars() or a templating engine with auto-escaping"
+    auto_fixable: false
+    fix_template: null
+
+  - id: php-file-inclusion
+    name: File Inclusion Vulnerability
+    language: php
+    severity: critical
+    cwe: CWE-98
+    description: "Dynamic file inclusion with user input can lead to RFI/LFI"
+    patterns:
+      - include($X)
+      - include_once($X)
+      - require($X)
+      - require_once($X)
+    remediation: "Use a whitelist of allowed files or validate paths strictly"
+    auto_fixable: false
+    fix_template: null
