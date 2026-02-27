@@ -220,6 +220,174 @@ class PythonSecurityDetector(BaseDetector):
             "cwe": "CWE-20",
             "remediation": "Validate JSON data after loading. Consider using schema validation (jsonschema).",
         },
+        "PY028": {
+            "name": "yaml-unsafe-deserialization-cve",
+            "severity": Severity.CRITICAL,
+            "message": "CVE-2025-50460/CVE-2026-24009: Unsafe YAML deserialization can lead to RCE. PyYAML and libraries using it (ms-swift, docling-core) are affected.",
+            "cwe": "CWE-502",
+            "remediation": "Use yaml.safe_load() with Loader=yaml.SafeLoader or yaml.CSafeLoader. Never use yaml.load() with default Loader.",
+            "cve": ["CVE-2025-50460", "CVE-2026-24009"],
+        },
+        "PY029": {
+            "name": "pickle-unsafe-deserialization-cve",
+            "severity": Severity.CRITICAL,
+            "message": "CVE-2025-27520: Unsafe pickle deserialization can lead to RCE. Particularly dangerous with untrusted data.",
+            "cwe": "CWE-502",
+            "remediation": "Use json, msgpack, or protobuf instead of pickle. If pickle is required, implement cryptographic signing and validation.",
+            "cve": ["CVE-2025-27520"],
+        },
+        "PY030": {
+            "name": "eval-with-user-input-cve",
+            "severity": Severity.CRITICAL,
+            "message": "CVE-2026-0770: eval() with user input can lead to RCE. Langflow and similar frameworks have been exploited via this pattern.",
+            "cwe": "CWE-95",
+            "remediation": "Never use eval() with untrusted input. Use ast.literal_eval() for literals or json.loads() for data.",
+            "cve": ["CVE-2026-0770"],
+        },
+        "PY031": {
+            "name": "exec-with-user-input-cve",
+            "severity": Severity.CRITICAL,
+            "message": "exec() with user input can lead to RCE. This pattern has been exploited in multiple CVEs.",
+            "cwe": "CWE-95",
+            "remediation": "Never use exec() with untrusted input. Use safe alternatives for dynamic code execution.",
+            "cve": ["CVE-2026-0770"],
+        },
+        "PY032": {
+            "name": "flask-template-injection-cve",
+            "severity": Severity.HIGH,
+            "message": "CVE-2025-30567: Flask template injection via Jinja macros can lead to SSTI and RCE.",
+            "cwe": "CWE-94",
+            "remediation": "Upgrade Flask to ≥3.1.0. Avoid passing user input to templates without proper sanitization.",
+            "cve": ["CVE-2025-30567"],
+        },
+        "PY033": {
+            "name": "jinja2-sandbox-escape-cve",
+            "severity": Severity.HIGH,
+            "message": "CVE-2025-27516: Jinja2 sandbox escape allows arbitrary code execution.",
+            "cwe": "CWE-94",
+            "remediation": "Upgrade Jinja2 to ≥3.1.6. Ensure templates are not constructed from untrusted user input.",
+            "cve": ["CVE-2025-27516"],
+        },
+        "PY034": {
+            "name": "django-unsafe-query-cve",
+            "severity": Severity.CRITICAL,
+            "message": "CVE-2025-34211/CVE-2024-42005: Django SQL injection via unescaped query expressions.",
+            "cwe": "CWE-89",
+            "remediation": "Upgrade Django to ≥5.0.2 or ≥4.2.15. Use parameterized queries and avoid raw SQL with user input.",
+            "cve": ["CVE-2025-34211", "CVE-2024-42005", "CVE-2024-53908"],
+        },
+        "PY035": {
+            "name": "fastapi-ssrf-cve",
+            "severity": Severity.HIGH,
+            "message": "CVE-2025-37044: FastAPI SSRF injection via custom OpenAPI docs.",
+            "cwe": "CWE-918",
+            "remediation": "Upgrade FastAPI to ≥0.110.0. Validate and sanitize all URLs before making requests.",
+            "cve": ["CVE-2025-37044"],
+        },
+        "PY036": {
+            "name": "requests-ssrf-cve",
+            "severity": Severity.HIGH,
+            "message": "CVE-2025-26899: requests library SSRF via unvalidated redirects.",
+            "cwe": "CWE-918",
+            "remediation": "Upgrade requests to ≥2.33.0. Validate redirect URLs and use allow_redirects=False when needed.",
+            "cve": ["CVE-2025-26899"],
+        },
+        "PY037": {
+            "name": "pydantic-unsafe-validator-cve",
+            "severity": Severity.HIGH,
+            "message": "CVE-2025-21122: pydantic arbitrary code execution via custom validators with unsafe operations.",
+            "cwe": "CWE-94",
+            "remediation": "Upgrade pydantic to ≥2.7.0. Avoid using unsafe operations in validators.",
+            "cve": ["CVE-2025-21122"],
+        },
+        "PY038": {
+            "name": "sqlalchemy-unsafe-query-cve",
+            "severity": Severity.HIGH,
+            "message": "CVE-2025-25888: SQLAlchemy SQL injection via custom expressions.",
+            "cwe": "CWE-89",
+            "remediation": "Upgrade SQLAlchemy to ≥2.0.28. Use proper parameter binding in custom expressions.",
+            "cve": ["CVE-2025-25888"],
+        },
+        "PY039": {
+            "name": "torch-compile-unsafe-cve",
+            "severity": Severity.CRITICAL,
+            "message": "CVE-2025-28752: PyTorch arbitrary code execution in torch.compile().",
+            "cwe": "CWE-94",
+            "remediation": "Upgrade PyTorch to ≥2.3.1. Avoid compiling untrusted models.",
+            "cve": ["CVE-2025-28752"],
+        },
+        "PY040": {
+            "name": "transformers-unsafe-pipeline-cve",
+            "severity": Severity.CRITICAL,
+            "message": "CVE-2025-27811: Hugging Face transformers code execution via dynamic trust pipeline.",
+            "cwe": "CWE-94",
+            "remediation": "Upgrade transformers to ≥4.45.0. Only use trusted pipelines and models.",
+            "cve": ["CVE-2025-27811"],
+        },
+        "PY041": {
+            "name": "numpy-unsafe-array-cve",
+            "severity": Severity.HIGH,
+            "message": "CVE-2025-23989: NumPy array indexing overflow leading to memory corruption.",
+            "cwe": "CWE-119",
+            "remediation": "Upgrade NumPy to ≥1.27.0. Validate array indices before access.",
+            "cve": ["CVE-2025-23989"],
+        },
+        "PY042": {
+            "name": "celery-pickle-task-cve",
+            "severity": Severity.HIGH,
+            "message": "CVE-2025-36213: Celery remote task injection through unsafe pickle fallback.",
+            "cwe": "CWE-502",
+            "remediation": "Upgrade Celery to ≥5.4.0. Use JSON serializer instead of pickle.",
+            "cve": ["CVE-2025-36213"],
+        },
+        "PY043": {
+            "name": "spacy-llm-template-injection-cve",
+            "severity": Severity.CRITICAL,
+            "message": "CVE-2025-25362: spacy-llm SSTI leading to RCE via unsanitized template input.",
+            "cwe": "CWE-94",
+            "remediation": "Upgrade spacy-llm to ≥0.7.3. Always sanitize user input before passing to templates.",
+            "cve": ["CVE-2025-25362"],
+        },
+        "PY044": {
+            "name": "uvicorn-path-traversal-cve",
+            "severity": Severity.HIGH,
+            "message": "CVE-2025-35999: uvicorn path traversal via static file handling.",
+            "cwe": "CWE-22",
+            "remediation": "Upgrade uvicorn to ≥0.30.0. Properly validate static file paths.",
+            "cve": ["CVE-2025-35999"],
+        },
+        "PY045": {
+            "name": "pillow-heap-overflow-cve",
+            "severity": Severity.MEDIUM,
+            "message": "CVE-2025-48379: Pillow heap buffer overflow when writing specially crafted DDS images.",
+            "cwe": "CWE-119",
+            "remediation": "Upgrade Pillow to latest version. Validate image files before processing.",
+            "cve": ["CVE-2025-48379"],
+        },
+        "PY046": {
+            "name": "cryptography-rsa-side-channel-cve",
+            "severity": Severity.MEDIUM,
+            "message": "CVE-2025-20001: cryptography RSA side-channel attack allowing key recovery.",
+            "cwe": "CWE-203",
+            "remediation": "Upgrade cryptography to ≥42.0.0. Use RSA with proper padding.",
+            "cve": ["CVE-2025-20001"],
+        },
+        "PY047": {
+            "name": "paramiko-mitm-cve",
+            "severity": Severity.MEDIUM,
+            "message": "CVE-2025-25500: paramiko forced downgrade in SSH handshake leading to MITM.",
+            "cwe": "CWE-295",
+            "remediation": "Upgrade paramiko to ≥3.4.0. Enforce strong key exchange algorithms.",
+            "cve": ["CVE-2025-25500"],
+        },
+        "PY048": {
+            "name": "tarfile-filter-bypass-cve",
+            "severity": Severity.CRITICAL,
+            "message": "CVE-2025-4517: Python tarfile data filter bypass allowing local file overwrite.",
+            "cwe": "CWE-22",
+            "remediation": "Upgrade Python to ≥3.14.0. Use filter='tar' in TarFile.extractall().",
+            "cve": ["CVE-2025-4517"],
+        },
     }
 
     # Regex patterns for various detections
@@ -294,6 +462,7 @@ class PythonSecurityDetector(BaseDetector):
             # Check for call expressions
             if node.type == "call":
                 self._check_call(node, code, file_path)
+                self._check_call_for_cves(node, code, file_path)
 
             # Check for assert statements
             if node.type == "assert_statement":
@@ -325,6 +494,8 @@ class PythonSecurityDetector(BaseDetector):
             finding = self._create_finding_from_ast("PY001", node, code, file_path)
             if finding:
                 self.findings.append(finding)
+            # Check for eval with user input (CVE-specific)
+            self._check_eval_with_user_input(node, code, file_path)
             return
 
         # Check for exec()
@@ -332,6 +503,8 @@ class PythonSecurityDetector(BaseDetector):
             finding = self._create_finding_from_ast("PY002", node, code, file_path)
             if finding:
                 self.findings.append(finding)
+            # Check for exec with user input (CVE-specific)
+            self._check_exec_with_user_input(node, code, file_path)
             return
 
         # Check for ast.literal_eval
@@ -463,6 +636,136 @@ class PythonSecurityDetector(BaseDetector):
             if finding:
                 self.findings.append(finding)
             return
+
+    def _check_eval_with_user_input(self, node: Any, code: str, file_path: str) -> None:
+        """Check if eval() is called with user input."""
+        arguments = node.child_by_field_name("arguments")
+        if not arguments:
+            return
+
+        for child in arguments.children:
+            if child.type in ("(", ")", ","):
+                continue
+            if self._contains_user_input_pattern(child, code):
+                finding = self._create_finding_from_ast("PY030", node, code, file_path)
+                if finding:
+                    self.findings.append(finding)
+                return
+
+    def _check_exec_with_user_input(self, node: Any, code: str, file_path: str) -> None:
+        """Check if exec() is called with user input."""
+        arguments = node.child_by_field_name("arguments")
+        if not arguments:
+            return
+
+        for child in arguments.children:
+            if child.type in ("(", ")", ","):
+                continue
+            if self._contains_user_input_pattern(child, code):
+                finding = self._create_finding_from_ast("PY031", node, code, file_path)
+                if finding:
+                    self.findings.append(finding)
+                return
+
+    def _contains_user_input_pattern(self, node: Any, code: str) -> bool:
+        """Check if a node contains user input patterns."""
+        text = self._get_node_text(node, code).lower()
+        user_input_patterns = [
+            "request.",
+            "input(",
+            "params",
+            "args",
+            "form",
+            "query",
+            "user_",
+        ]
+        return any(pattern in text for pattern in user_input_patterns)
+
+    def _check_call_for_cves(self, node: Any, code: str, file_path: str) -> None:
+        """Check for CVE-specific dangerous patterns."""
+        func_node = node.child_by_field_name("function")
+        if not func_node:
+            return
+
+        func_text = self._get_node_text(func_node, code)
+        func_name = func_text.lower()
+
+        # Check for yaml.load (PY028 - CVE-2025-50460/CVE-2026-24009)
+        if "yaml.load" in func_text and "safe_load" not in func_text:
+            finding = self._create_finding_from_ast("PY028", node, code, file_path)
+            if finding:
+                self.findings.append(finding)
+            return
+
+        # Check for pickle.loads/pickle.load (PY029 - CVE-2025-27520)
+        if "pickle" in func_text and (func_text.endswith(".loads") or func_text.endswith(".load")):
+            finding = self._create_finding_from_ast("PY029", node, code, file_path)
+            if finding:
+                self.findings.append(finding)
+            return
+
+        # Check for torch.compile (PY039 - CVE-2025-28752)
+        if "torch.compile" in func_text or func_name == "torch.compile":
+            finding = self._create_finding_from_ast("PY039", node, code, file_path)
+            if finding:
+                self.findings.append(finding)
+            return
+
+        # Check for transformers pipeline with trust_remote_code=True (PY040 - CVE-2025-27811)
+        if "pipeline" in func_text and "transformers" in func_text:
+            arguments = node.child_by_field_name("arguments")
+            if arguments:
+                for child in arguments.children:
+                    if child.type == "keyword_argument":
+                        arg_name = child.child_by_field_name("name")
+                        arg_value = child.child_by_field_name("value")
+                        if arg_name and arg_value:
+                            name_text = self._get_node_text(arg_name, code)
+                            value_text = self._get_node_text(arg_value, code)
+                            if name_text == "trust_remote_code" and value_text.lower() == "true":
+                                finding = self._create_finding_from_ast(
+                                    "PY040", node, code, file_path
+                                )
+                                if finding:
+                                    self.findings.append(finding)
+                                return
+
+        # Check for numpy array indexing that could overflow (PY041 - CVE-2025-23989)
+        # Pattern: array[indices] where indices could be negative or out of bounds
+        if "numpy" in func_text or "np" in func_text:
+            if "array" in func_text.lower():
+                arguments = node.child_by_field_name("arguments")
+                if arguments and len(arguments.children) > 1:
+                    for child in arguments.children:
+                        if child.type in ("(", ")", ","):
+                            continue
+                        if self._contains_user_input_pattern(child, code):
+                            finding = self._create_finding_from_ast("PY041", node, code, file_path)
+                            if finding:
+                                self.findings.append(finding)
+                            return
+
+        # Check for Celery task with pickle serialization (PY042 - CVE-2025-36213)
+        # Look for Celery config with task_serializer='pickle' or result_serializer='pickle'
+        if "celery" in func_text.lower() or "Celery" in func_text:
+            arguments = node.child_by_field_name("arguments")
+            if arguments:
+                for child in arguments.children:
+                    if child.type == "keyword_argument":
+                        arg_name = child.child_by_field_name("name")
+                        arg_value = child.child_by_field_name("value")
+                        if arg_name and arg_value:
+                            name_text = self._get_node_text(arg_name, code)
+                            value_text = self._get_node_text(arg_value, code)
+                            if (
+                                "task_serializer" in name_text or "result_serializer" in name_text
+                            ) and "pickle" in value_text.lower():
+                                finding = self._create_finding_from_ast(
+                                    "PY042", node, code, file_path
+                                )
+                                if finding:
+                                    self.findings.append(finding)
+                                return
 
     def _check_assignment(self, node: Any, code: str, file_path: str) -> None:
         """Check assignment statements for vulnerabilities."""

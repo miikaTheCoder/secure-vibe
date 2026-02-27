@@ -169,6 +169,78 @@ class JavaScriptDetector(BaseDetector):
                 "remediation": "Use modern alternatives like bcrypt, argon2, or native crypto module",
                 "auto_fixable": False,
             },
+            "ssrf_fetch": {
+                "pattern": r"(?:fetch|axios\.|\.\s*get\(|\.\s*post\()\s*\(\s*(?:req\.|request\.|body\.|query\.|params\.|headers\.)",
+                "severity": Severity.HIGH,
+                "cwe_id": "CWE-918",
+                "message": "Potential Server-Side Request Forgery (SSRF) - user-controlled URL in HTTP request",
+                "remediation": "Validate and whitelist URLs before making requests",
+                "auto_fixable": False,
+            },
+            "ssrf_url_param": {
+                "pattern": r"(?:fetch|axios)\s*\([^)]*(?:\+|\$\{).*?(?:url|uri|endpoint|path)",
+                "severity": Severity.HIGH,
+                "cwe_id": "CWE-918",
+                "message": "Potential SSRF - URL constructed from user input",
+                "remediation": "Validate and whitelist URLs before making requests",
+                "auto_fixable": False,
+            },
+            "path_traversal_advanced": {
+                "pattern": r"(?:readFile|writeFile|readFileSync|writeFileSync|createReadStream|createWriteStream|rename|mkdir)\s*\([^)]*(?:\.\.|%2e%2e|/../)",
+                "severity": Severity.HIGH,
+                "cwe_id": "CWE-22",
+                "message": "Potential path traversal vulnerability detected",
+                "remediation": "Validate and sanitize file paths, use path.resolve() and path.normalize()",
+                "auto_fixable": False,
+            },
+            "template_injection_lodash": {
+                "pattern": r"(?:lodash|_)\.template\s*\(",
+                "severity": Severity.HIGH,
+                "cwe_id": "CWE-94",
+                "message": "Potential template injection via lodash.template()",
+                "remediation": "Avoid using user input in templates, use safe templating alternatives",
+                "auto_fixable": False,
+            },
+            "deserialization_unsafe": {
+                "pattern": r"(?:JSON\.parse|yaml\.load|yaml\.unsafeLoad)\s*\([^)]*(?:req\.|body\.|query\.|params\.)",
+                "severity": Severity.HIGH,
+                "cwe_id": "CWE-502",
+                "message": "Unsafe deserialization of user-controlled data",
+                "remediation": "Validate input before deserialization, use safe parsers",
+                "auto_fixable": False,
+            },
+            "dangerous_redirect": {
+                "pattern": r"(?:redirect|res\.redirect|Response\.redirect|window\.location)\s*\(\s*[\"'`](?:http|//|\$\{)",
+                "severity": Severity.HIGH,
+                "cwe_id": "CWE-601",
+                "message": "Potential open redirect vulnerability",
+                "remediation": "Validate redirect URLs against allowlist",
+                "auto_fixable": False,
+            },
+            "express_session_secret": {
+                "pattern": r"express\.session\s*\(\s*\{(?!\s*secret)",
+                "severity": Severity.MEDIUM,
+                "cwe_id": "CWE-489",
+                "message": "Express session middleware missing secret configuration",
+                "remediation": "Always configure a secure secret for session middleware",
+                "auto_fixable": False,
+            },
+            "cookie_missing_secure": {
+                "pattern": r"(?:cookie|res\.cookie|setcookie)\s*\([^)]*(?:httpOnly\s*:\s*false|secure\s*:\s*false)",
+                "severity": Severity.MEDIUM,
+                "cwe_id": "CWE-614",
+                "message": "Cookie missing secure flag",
+                "remediation": "Always set secure: true for session cookies",
+                "auto_fixable": False,
+            },
+            "cors_unsafe": {
+                "pattern": r"cors\s*\(\s*\{[^}]*origin\s*:\s*[\"'`](?:\*|true|null)",
+                "severity": Severity.MEDIUM,
+                "cwe_id": "CWE-346",
+                "message": "Unsafe CORS configuration - allows any origin",
+                "remediation": "Use specific origin allowlist instead of * or true",
+                "auto_fixable": False,
+            },
         }
 
     def detect(self, code: str, file_path: str) -> List[Dict[str, Any]]:
@@ -217,6 +289,9 @@ class JavaScriptDetector(BaseDetector):
             self._check_child_process(file_path, code, node)
             self._check_math_random(file_path, code, node)
             self._check_json_parse(file_path, code, node)
+            self._check_ssrf(file_path, code, node)
+            self._check_path_traversal_ast(file_path, code, node)
+            self._check_dangerous_redirect(file_path, code, node)
 
         # Check for dangerous property assignments
         if node_type == "assignment_expression":
@@ -539,6 +614,118 @@ class JavaScriptDetector(BaseDetector):
                 cwe_id="CWE-79",
                 file_path=file_path,
             )
+
+    def _check_ssrf(self, file_path: str, code: str, node: Any) -> None:
+        """Detect SSRF via fetch/axios calls with user-controlled URLs."""
+        func_node = node.child_by_field_name("function")
+        if not func_node:
+            return
+
+        func_text = self._get_node_text(code, func_node)
+
+        if (
+            "fetch" in func_text
+            or "axios" in func_text
+            or "get" in func_text
+            or "post" in func_text
+        ):
+            args = node.child_by_field_name("arguments")
+            if args and args.child_count > 0:
+                first_arg = args.children[0]
+                arg_text = self._get_node_text(code, first_arg)
+
+                if any(
+                    prefix in arg_text
+                    for prefix in ["req.", "request.", "body.", "query.", "params.", "headers."]
+                ):
+                    line, col = self._get_location(node)
+                    snippet = self.get_snippet(code, line)
+                    self.add_finding(
+                        rule_id="JS-SSRF-001",
+                        severity=Severity.HIGH,
+                        message="Potential Server-Side Request Forgery (SSRF) - user-controlled URL in HTTP request",
+                        line=line,
+                        column=col,
+                        code_snippet=snippet,
+                        remediation="Validate and whitelist URLs before making requests",
+                        cwe_id="CWE-918",
+                        file_path=file_path,
+                    )
+
+    def _check_path_traversal_ast(self, file_path: str, code: str, node: Any) -> None:
+        """Detect path traversal vulnerabilities via AST."""
+        func_node = node.child_by_field_name("function")
+        if not func_node:
+            return
+
+        func_text = self._get_node_text(code, func_node)
+
+        dangerous_methods = [
+            "readFile",
+            "writeFile",
+            "readFileSync",
+            "writeFileSync",
+            "createReadStream",
+            "createWriteStream",
+            "rename",
+            "mkdir",
+        ]
+
+        if any(method in func_text for method in dangerous_methods):
+            args = node.child_by_field_name("arguments")
+            if args:
+                for arg in args.children:
+                    arg_text = self._get_node_text(code, arg)
+                    if ".." in arg_text or "%2e%2e" in arg_text.lower():
+                        line, col = self._get_location(node)
+                        snippet = self.get_snippet(code, line)
+                        self.add_finding(
+                            rule_id="JS-PATH-001",
+                            severity=Severity.HIGH,
+                            message="Potential path traversal vulnerability detected",
+                            line=line,
+                            column=col,
+                            code_snippet=snippet,
+                            remediation="Validate and sanitize file paths, use path.resolve() and path.normalize()",
+                            cwe_id="CWE-22",
+                            file_path=file_path,
+                        )
+                        break
+
+    def _check_dangerous_redirect(self, file_path: str, code: str, node: Any) -> None:
+        """Detect open redirect vulnerabilities."""
+        func_node = node.child_by_field_name("function")
+        if not func_node:
+            return
+
+        func_text = self._get_node_text(code, func_node)
+
+        redirect_methods = ["redirect", "res.redirect", "Response.redirect", "window.location"]
+
+        if any(method in func_text for method in redirect_methods):
+            args = node.child_by_field_name("arguments")
+            if args and args.child_count > 0:
+                first_arg = args.children[0]
+                arg_text = self._get_node_text(code, first_arg)
+
+                if (
+                    arg_text.startswith(("http://", "https://", "//", "${"))
+                    or "'${" in arg_text
+                    or '"${' in arg_text
+                ):
+                    line, col = self._get_location(node)
+                    snippet = self.get_snippet(code, line)
+                    self.add_finding(
+                        rule_id="JS-REDIRECT-001",
+                        severity=Severity.HIGH,
+                        message="Potential open redirect vulnerability",
+                        line=line,
+                        column=col,
+                        code_snippet=snippet,
+                        remediation="Validate redirect URLs against allowlist",
+                        cwe_id="CWE-601",
+                        file_path=file_path,
+                    )
 
     def _scan_with_regex(self, file_path: str, code: str) -> None:
         """Scan using regex patterns for additional detections."""
