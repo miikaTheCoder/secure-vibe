@@ -56,7 +56,7 @@ class SyntaxValidator(BaseValidator):
                     module = __import__(module_name)
                     language = Language(module.language())
                     parser = Parser()
-                    parser.set_language(language)
+                    parser.language = language
                     self._parsers[lang_name] = parser
                 except ImportError:
                     pass

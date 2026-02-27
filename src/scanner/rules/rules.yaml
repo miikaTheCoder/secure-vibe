@@ -272,7 +272,7 @@ rules:
     cwe: CWE-295
     description: "TLS certificate verification has been disabled"
     patterns:
-      - InsecureSkipVerify: true
+      - InsecureSkipVerify
     remediation: "Never disable certificate verification in production"
     auto_fixable: false
     fix_template: null
