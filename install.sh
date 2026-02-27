@@ -10,11 +10,15 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+
+# Get actual username
+USER_NAME=$(whoami)
 
 # Logging functions
 log_info() {
@@ -35,7 +39,7 @@ log_error() {
 
 # Print banner
 print_banner() {
-    echo -e "${BLUE}"
+    echo -e "${CYAN}"
     echo "╔════════════════════════════════════════════════════════════╗"
     echo "║                                                            ║"
     echo "║           🔒 Secure Vibe MCP Installer                     ║"
@@ -126,78 +130,138 @@ install_dependencies() {
     log_success "Dependencies installed"
 }
 
-# Create configuration directory
-setup_config() {
-    log_info "Setting up configuration..."
+# Ask for IDE/CLI and configure MCP
+configure_mcp() {
+    echo
+    echo -e "${CYAN}╔════════════════════════════════════════════════════════════╗"
+    echo "║              MCP Configuration Setup                    ║"
+    echo "╚════════════════════════════════════════════════════════════╝${NC}"
+    echo
+    echo "Which IDE/CLI would you like to configure for Secure Vibe?"
+    echo
+    echo "  1) Kilo CLI"
+    echo "  2) Claude Code"
+    echo "  3) Claude Desktop"
+    echo "  4) Cursor"
+    echo "  5) Windsurf"
+    echo "  6) OpenCode"
+    echo "  7) Skip (I'll configure manually)"
+    echo
+    read -p "Enter your choice (1-7): " choice
     
-    mkdir -p config
+    VENV_PYTHON="$SCRIPT_DIR/.venv/bin/python"
+    WORKING_DIR="$SCRIPT_DIR"
     
-    if [ -f "config/mcp-config.json" ]; then
-        log_info "MCP configuration already exists"
-    else
-        log_warning "MCP config not found. Run from project root."
-    fi
-    
-    # Create .env template if it doesn't exist
-    if [ ! -f ".env.template" ]; then
-        cat > .env.template << 'EOF'
-# Secure Vibe MCP Configuration
-SEVERITY_THRESHOLD=medium
-AUTO_PATCH=false
-RULES_PATH=./src/scanner/rules/rules.yaml
-BACKUP_ENABLED=true
-PARALLEL_SCANNING=true
-MAX_WORKERS=4
-LOG_LEVEL=INFO
-OUTPUT_FORMAT=json
-ENABLE_SEMANTIC_ANALYSIS=true
-ENABLE_DATAFLOW_ANALYSIS=true
-EOF
-        log_success "Created .env.template"
-    fi
-    
-    log_success "Configuration setup complete"
+    case $choice in
+        1)
+            log_info "Configuring Kilo CLI..."
+            mkdir -p "$HOME/.config/kilo"
+            cat > "$HOME/.config/kilo/kilo.json" << EOF
+{
+  "mcp": {
+    "secure-vibe": {
+      "type": "local",
+      "command": ["$VENV_PYTHON", "-m", "src.mcp_server"],
+      "cwd": "$WORKING_DIR",
+      "enabled": true
+    }
+  }
 }
-
-# Create shell aliases
-create_aliases() {
-    log_info "Creating shell aliases..."
-    
-    SHELL_NAME=$(basename "$SHELL")
-    
-    case "$SHELL_NAME" in
-        bash)
-            RC_FILE="$HOME/.bashrc"
+EOF
+            log_success "Kilo CLI configured! Run 'kilo' to start."
             ;;
-        zsh)
-            RC_FILE="$HOME/.zshrc"
+        2)
+            log_info "Configuring Claude Code..."
+            cat > "$HOME/.claude.json" << EOF
+{
+  "mcpServers": {
+    "secure-vibe": {
+      "command": "$VENV_PYTHON",
+      "args": ["-m", "src.mcp_server"],
+      "env": {},
+      "cwd": "$WORKING_DIR"
+    }
+  }
+}
+EOF
+            log_success "Claude Code configured! Run 'claude' to start."
             ;;
-        fish)
-            RC_FILE="$HOME/.config/fish/config.fish"
+        3)
+            log_info "Configuring Claude Desktop..."
+            mkdir -p "$HOME/.config/Claude"
+            cat > "$HOME/.config/Claude/config.json" << EOF
+{
+  "mcpServers": {
+    "secure-vibe": {
+      "command": "$VENV_PYTHON",
+      "args": ["-m", "src.mcp_server"],
+      "env": {},
+      "cwd": "$WORKING_DIR"
+    }
+  }
+}
+EOF
+            log_success "Claude Desktop configured! Restart Claude Desktop."
+            ;;
+        4)
+            log_info "Configuring Cursor..."
+            mkdir -p "$HOME/.cursor"
+            cat > "$HOME/.cursor/mcp.json" << EOF
+{
+  "mcpServers": {
+    "secure-vibe": {
+      "command": "$VENV_PYTHON",
+      "args": ["-m", "src.mcp_server"],
+      "env": {},
+      "cwd": "$WORKING_DIR"
+    }
+  }
+}
+EOF
+            log_success "Cursor configured! Restart Cursor."
+            ;;
+        5)
+            log_info "Configuring Windsurf..."
+            mkdir -p "$HOME/.codeium/windsurf"
+            cat > "$HOME/.codeium/windsurf/mcp_config.json" << EOF
+{
+  "mcpServers": {
+    "secure-vibe": {
+      "command": "$VENV_PYTHON",
+      "args": ["-m", "src.mcp_server"],
+      "env": {},
+      "cwd": "$WORKING_DIR"
+    }
+  }
+}
+EOF
+            log_success "Windsurf configured! Restart Windsurf."
+            ;;
+        6)
+            log_info "Configuring OpenCode..."
+            cat > "$SCRIPT_DIR/opencode.json" << EOF
+{
+  "\$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "secure-vibe": {
+      "type": "local",
+      "command": ["$VENV_PYTHON", "-m", "src.mcp_server"],
+      "cwd": "$WORKING_DIR",
+      "enabled": true
+    }
+  }
+}
+EOF
+            log_success "OpenCode configured! Run 'opencode' in this directory."
+            ;;
+        7)
+            log_info "Skipping MCP configuration."
+            log_info "You can configure manually using: $VENV_PYTHON -m src.mcp_server"
             ;;
         *)
-            log_warning "Unknown shell: $SHELL_NAME. Skipping alias creation."
-            return
+            log_warning "Invalid choice. Skipping MCP configuration."
             ;;
     esac
-    
-    # Check if aliases already exist
-    if grep -q "secure-vibe" "$RC_FILE" 2>/dev/null; then
-        log_warning "Aliases already exist in $RC_FILE"
-        return
-    fi
-    
-    cat >> "$RC_FILE" << EOF
-
-# Secure Vibe MCP Aliases
-alias secure-vibe='cd $SCRIPT_DIR && source .venv/bin/activate && python -m src.cli'
-alias secure-vibe-scan='secure-vibe scan'
-alias secure-vibe-report='secure-vibe report'
-alias secure-vibe-patch='secure-vibe patch'
-EOF
-    
-    log_success "Created aliases in $RC_FILE"
-    log_info "Run 'source $RC_FILE' to load aliases"
 }
 
 # Run test scan
@@ -230,17 +294,11 @@ print_completion() {
     echo "  3. Generate report: python -m src.cli report --output report.html"
     echo
     echo -e "${BLUE}MCP Integration:${NC}"
-    echo "  • Claude Desktop: Add config/mcp-config.json to ~/.config/claude/config.json"
-    echo "  • Cursor: Add config/mcp-config.json to .cursor/mcp.json"
-    echo "  • Windsurf: Add config to your Windsurf MCP settings"
+    echo "  • MCP was configured during installation above"
     echo
     echo -e "${BLUE}Documentation:${NC}"
     echo "  • README.md - Full documentation"
     echo "  • examples/ - Usage examples and integration guides"
-    echo
-    echo -e "${BLUE}Support:${NC}"
-    echo "  • Issues: https://github.com/yourusername/secure-vibe-mcp/issues"
-    echo "  • Docs: https://docs.secure-vibe.dev"
     echo
 }
 
@@ -254,8 +312,7 @@ main() {
     check_pip
     setup_venv
     install_dependencies
-    setup_config
-    create_aliases
+    configure_mcp
     run_test_scan
     
     print_completion
