@@ -159,7 +159,7 @@ configure_mcp() {
             cat > "$HOME/.config/kilo/kilo.json" << EOF
 {
   "mcp": {
-    "secure-vibe": {
+    "secure_vibe": {
       "type": "local",
       "command": ["$VENV_PYTHON", "-m", "src.mcp_server"],
       "cwd": "$WORKING_DIR",
@@ -175,7 +175,7 @@ EOF
             cat > "$HOME/.claude.json" << EOF
 {
   "mcpServers": {
-    "secure-vibe": {
+    "secure_vibe": {
       "command": "$VENV_PYTHON",
       "args": ["-m", "src.mcp_server"],
       "env": {},
@@ -192,7 +192,7 @@ EOF
             cat > "$HOME/.config/Claude/config.json" << EOF
 {
   "mcpServers": {
-    "secure-vibe": {
+    "secure_vibe": {
       "command": "$VENV_PYTHON",
       "args": ["-m", "src.mcp_server"],
       "env": {},
@@ -209,7 +209,7 @@ EOF
             cat > "$HOME/.cursor/mcp.json" << EOF
 {
   "mcpServers": {
-    "secure-vibe": {
+    "secure_vibe": {
       "command": "$VENV_PYTHON",
       "args": ["-m", "src.mcp_server"],
       "env": {},
@@ -226,7 +226,7 @@ EOF
             cat > "$HOME/.codeium/windsurf/mcp_config.json" << EOF
 {
   "mcpServers": {
-    "secure-vibe": {
+    "secure_vibe": {
       "command": "$VENV_PYTHON",
       "args": ["-m", "src.mcp_server"],
       "env": {},
@@ -243,7 +243,7 @@ EOF
 {
   "\$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "secure-vibe": {
+    "secure_vibe": {
       "type": "local",
       "command": ["$VENV_PYTHON", "-m", "src.mcp_server"],
       "cwd": "$WORKING_DIR",
