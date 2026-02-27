@@ -15,7 +15,7 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 
 from src.scanner.engine import ScanEngine
-from src.patcher.engine import PatchEngine
+from src.patcher.engine import PatchingEngine
 from src.utils.helpers import (
     format_scan_result as format_scan_result_fn,
     format_vulnerability_result as format_vuln_result,
@@ -36,7 +36,7 @@ mcp = FastMCP("secure-vibe")
 
 # Initialize engines
 scan_engine = ScanEngine()
-patch_engine = PatchEngine()
+patch_engine = PatchingEngine()
 
 # In-memory storage for scan results
 scan_results: dict[str, dict[str, Any]] = {}
