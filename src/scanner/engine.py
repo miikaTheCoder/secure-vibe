@@ -15,6 +15,22 @@ import yaml
 from src.scanner.rules import RuleLoader
 from src.scanner.detectors.secrets import SecretsDetector, SecretFinding
 
+# Import language-specific detectors
+try:
+    from src.scanner.detectors.python import PythonSecurityDetector
+except ImportError:
+    PythonSecurityDetector = None
+
+try:
+    from src.scanner.detectors.go import GoDetector
+except ImportError:
+    GoDetector = None
+
+try:
+    from src.scanner.detectors.rust import RustSecurityDetector
+except ImportError:
+    RustSecurityDetector = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -183,7 +199,7 @@ class ScanEngine:
         ".sql": "sql",
     }
 
-    SUPPORTED_EXTENSIONS = {".js", ".jsx", ".ts", ".tsx", ".py", ".go", ".java", ".rb", ".php"}
+    SUPPORTED_EXTENSIONS = {".js", ".jsx", ".ts", ".tsx", ".py", ".go", ".java", ".rb", ".php", ".rs"}
 
     def __init__(self, rules_path: Optional[str] = None, max_workers: Optional[int] = None):
         """Initialize the scanner engine.
@@ -198,6 +214,15 @@ class ScanEngine:
         self.secrets_detector = SecretsDetector()
         self.max_workers = max_workers or os.cpu_count() or 4
         self.vuln_counter = 0
+        
+        # Initialize language-specific detectors
+        self._detectors = {}
+        if PythonSecurityDetector:
+            self._detectors["python"] = PythonSecurityDetector()
+        if GoDetector:
+            self._detectors["go"] = GoDetector({})
+        if RustSecurityDetector:
+            self._detectors["rust"] = RustSecurityDetector()
 
     def _get_language(self, file_path: str) -> Optional[str]:
         """Determine language from file extension."""
@@ -389,6 +414,34 @@ class ScanEngine:
         # Route to language-specific detector
         language = self._get_language(file_path)
         if language:
+            # First try language-specific detector if available
+            if language in self._detectors:
+                detector = self._detectors[language]
+                try:
+                    detector_results = detector.scan(file_path, code)
+                    for finding in detector_results:
+                        result = ScanResult(
+                            rule_id=finding.rule_id,
+                            name=finding.rule_id,
+                            severity=finding.severity.value if hasattr(finding.severity, 'value') else str(finding.severity),
+                            language=language,
+                            file_path=file_path,
+                            line_number=finding.line,
+                            column_start=finding.column,
+                            column_end=finding.column + len(finding.code_snippet) if finding.code_snippet else finding.column,
+                            matched_code=finding.code_snippet,
+                            description=finding.message,
+                            cwe=finding.cwe_id,
+                            remediation=finding.remediation,
+                            auto_fixable=finding.auto_fixable,
+                            fix_template=finding.fixed_code,
+                        )
+                        if self._severity_meets_threshold(result.severity, severity_threshold):
+                            results.append(result)
+                except Exception as e:
+                    logger.warning(f"Language detector failed for {file_path}: {e}")
+            
+            # Also apply generic rules
             rule_results = self._apply_rules(code, language, file_path, severity_threshold)
             results.extend(rule_results)
 
@@ -461,7 +514,34 @@ class ScanEngine:
             if self._severity_meets_threshold(secret_result.severity, severity_threshold):
                 results.append(secret_result)
 
-        # Apply language-specific rules
+        # Try language-specific detector if available
+        if language in self._detectors:
+            detector = self._detectors[language]
+            try:
+                detector_results = detector.scan(file_path, code)
+                for finding in detector_results:
+                    result = ScanResult(
+                        rule_id=finding.rule_id,
+                        name=finding.rule_id,
+                        severity=finding.severity.value if hasattr(finding.severity, 'value') else str(finding.severity),
+                        language=language,
+                        file_path=file_path,
+                        line_number=finding.line,
+                        column_start=finding.column,
+                        column_end=finding.column + len(finding.code_snippet) if finding.code_snippet else finding.column,
+                        matched_code=finding.code_snippet,
+                        description=finding.message,
+                        cwe=finding.cwe_id,
+                        remediation=finding.remediation,
+                        auto_fixable=finding.auto_fixable,
+                        fix_template=finding.fixed_code,
+                    )
+                    if self._severity_meets_threshold(result.severity, severity_threshold):
+                        results.append(result)
+            except Exception as e:
+                logger.warning(f"Language detector failed for inline {language} code: {e}")
+        
+        # Also apply generic rules
         rule_results = self._apply_rules(code, language, file_path, severity_threshold)
         results.extend(rule_results)
 

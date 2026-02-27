@@ -237,7 +237,7 @@ async def scan_code(
 
     Args:
         code: Code snippet to scan
-        language: Programming language (auto, python, javascript, go)
+        language: Programming language (auto, python, javascript, go, rust)
         severity_threshold: Minimum severity level to report (low, medium, high, critical)
 
     Returns:
@@ -258,6 +258,8 @@ async def scan_code(
                 language = "javascript"
             elif "func " in code:
                 language = "go"
+            elif "fn " in code or "impl " in code or "use std::" in code or "let mut " in code:
+                language = "rust"
             else:
                 language = "generic"
 

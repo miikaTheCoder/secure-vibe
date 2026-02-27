@@ -17,14 +17,14 @@
 
 ## 📋 Overview
 
-Secure Vibe MCP is an advanced security scanning engine that integrates with AI coding assistants through the Model Context Protocol (MCP). It detects 47+ security vulnerabilities across multiple languages and provides intelligent auto-patching capabilities.
+Secure Vibe MCP is an advanced security scanning engine that integrates with AI coding assistants through the Model Context Protocol (MCP). It detects 50+ security vulnerabilities across multiple languages and provides intelligent auto-patching capabilities.
 
 ### Key Features
 
-- 🔍 **47+ Security Rules** - Comprehensive vulnerability detection
+- 🔍 **50+ Security Rules** - Comprehensive vulnerability detection
 - 🚀 **MCP Integration** - Works with Claude, Cursor, Windsurf, and more
 - 🛠️ **Auto-Patching** - Automatically fix vulnerabilities with one command
-- 📊 **Multi-Language** - JavaScript, TypeScript, Python, Go, Java, C/C++
+- 📊 **Multi-Language** - JavaScript, TypeScript, Python, Go, Rust, Java, C/C++
 - 🧠 **AI-Powered** - Semantic analysis and dataflow tracking
 - ⚡ **Parallel Scanning** - Fast multi-threaded analysis
 - 📈 **Detailed Reports** - Risk scores, CVSS ratings, remediation guidance
@@ -342,6 +342,61 @@ Secure Vibe includes **47 comprehensive security rules** across 9 categories:
 | `SEC-038` | Unrestricted File Deletion | High | All |
 | `SEC-039` | Unsafe File Permissions | Medium | All |
 
+### Rust Security (50 rules)
+
+| Rule ID | Name | Severity | Category |
+|---------|------|----------|----------|
+| `RS001` | Unsafe Block Usage | High | Memory Safety |
+| `RS002` | Unsafe Function | High | Memory Safety |
+| `RS003` | Raw Pointer Dereference | Critical | Memory Safety |
+| `RS004` | SQL Injection (String Format) | Critical | Injection |
+| `RS005` | SQL Injection (format! macro) | Critical | Injection |
+| `RS006` | Command Injection | Critical | Injection |
+| `RS007` | Command with Shell Execution | High | Injection |
+| `RS008` | Path Traversal | High | File Operations |
+| `RS009` | Panic on User Input | High | Error Handling |
+| `RS010` | unwrap() on Result | Medium | Error Handling |
+| `RS011` | expect() on Result | Medium | Error Handling |
+| `RS012` | unwrap() on Option | Medium | Error Handling |
+| `RS013` | Hardcoded Password | Critical | Secrets |
+| `RS014` | Hardcoded API Key | Critical | Secrets |
+| `RS015` | TLS Verification Disabled | High | Crypto/TLS |
+| `RS016` | Weak Random Number Generator | High | Crypto/TLS |
+| `RS017` | Insecure Hash (MD5) | Medium | Crypto/TLS |
+| `RS018` | Insecure Hash (SHA1) | Medium | Crypto/TLS |
+| `RS019` | Deserialization Without Validation | High | Data |
+| `RS020` | debug_assert! Usage | Low | Debug |
+| `RS021` | Insecure Temp File | Medium | File Operations |
+| `RS022` | Dangerous transmute | Critical | Memory Safety |
+| `RS023` | mem::forget Usage | Medium | Memory Safety |
+| `RS024` | Uninitialized Memory | Critical | Memory Safety |
+| `RS025` | Manual drop_in_place | High | Memory Safety |
+| `RS026` | FFI Boundary Unsafe | High | FFI |
+| `RS027` | Environment Variable Unsafe | Low | Config |
+| `RS028` | Mutable Static State | Medium | Concurrency |
+| `RS029` | Blocking in Async Context | Medium | Async |
+| `RS030` | Insecure SSL/TLS Version | High | Crypto/TLS |
+| `RS031` | Windows Batch Command Injection (CVE-2024-24576) | Critical | Injection |
+| `RS032` | Deeply Nested JSON (CVE-2024-58264) | High | DoS |
+| `RS033` | Unmaintained serde_yml (RUSTSEC-2025-0068) | Medium | Dependencies |
+| `RS034` | SQLx Binary Protocol Issue (RUSTSEC-2024-0363) | High | Database |
+| `RS035` | Typosquatted Dependency | Critical | Supply Chain |
+| `RS036` | Malicious Crate Usage | Critical | Supply Chain |
+| `RS037` | Build Script Command Execution | High | Supply Chain |
+| `RS038` | Proc-Macro Code Execution | High | Supply Chain |
+| `RS039` | Open Redirect | Medium | Web |
+| `RS040` | Format Injection | Medium | Injection |
+| `RS041` | XSS via HTML Rendering | High | Web |
+| `RS042` | SSRF Vulnerability | High | Web |
+| `RS043` | JWT Validation Bypass | Critical | Auth |
+| `RS044` | TOCTOU Race Condition | Medium | Concurrency |
+| `RS045` | Unsafe Signal Handler | High | System |
+| `RS046` | Lazy Static Mutable | Medium | Concurrency |
+| `RS047` | IDNA/Punycode Spoofing (CVE-2024-12224) | High | Web |
+| `RS048` | Axum DoS via Extractor | Medium | Web |
+| `RS049` | Tonic gRPC Misconfiguration | Medium | Web |
+| `RS050` | CORS Misconfiguration | Medium | Web |
+
 ### Dependencies (4 rules)
 
 | Rule ID | Name | Severity | Languages |
@@ -587,6 +642,9 @@ secure-vibe scan --file tests/sample_vulnerable/app.py
 
 # Scan sample vulnerable Go
 secure-vibe scan --file tests/sample_vulnerable/main.go
+
+# Scan sample vulnerable Rust
+secure-vibe scan --file tests/test_vulnerable_rust.rs
 ```
 
 ---
