@@ -418,17 +418,40 @@ See [examples/cursor-integration.md](examples/cursor-integration.md) for detaile
 
 ### Windsurf
 
-Add to your Windsurf configuration:
-```json
-{
-  "mcpServers": {
-    "secure-vibe": {
-      "command": "python",
-      "args": ["-m", "src.mcp_server"]
-    }
-  }
-}
-```
+See [examples/windsurf-integration.md](examples/windsurf-integration.md) for detailed setup instructions.
+
+**Quick Start:**
+1. Open Windsurf Settings
+2. Configure MCP server (Cmd+Shift+P: "Windsurf: Configure MCP Servers")
+3. Add secure-vibe configuration
+4. Use `@secure-vibe` in chat
+
+### Claude Code
+
+See [examples/claude-code-integration.md](examples/claude-code-integration.md) for detailed setup instructions.
+
+**Quick Start:**
+1. Install Secure Vibe MCP
+2. Add MCP config: `claude mcp add secure-vibe python -m src.mcp_server`
+3. Start Claude Code and use it
+
+### OpenCode
+
+See [examples/opencode-integration.md](examples/opencode-integration.md) for detailed setup instructions.
+
+**Quick Start:**
+1. Add MCP config to `opencode.json`
+2. Start OpenCode
+3. Use security scanning tools
+
+### Kilo CLI
+
+See [examples/kilo-integration.md](examples/kilo-integration.md) for detailed setup instructions.
+
+**Quick Start:**
+1. Add MCP config to `kilo.json`
+2. Start Kilo CLI
+3. Scan for vulnerabilities
 
 ---
 
