@@ -158,12 +158,11 @@ configure_mcp() {
             mkdir -p "$HOME/.config/kilo"
             cat > "$HOME/.config/kilo/kilo.json" << EOF
 {
-  "mcpServers": {
+  "mcp": {
     "secure_vibe": {
-      "command": "$VENV_PYTHON",
-      "args": ["-m", "src.mcp_server"],
-      "env": {},
-      "disabled": false
+      "type": "local",
+      "command": ["$VENV_PYTHON", "-m", "src.mcp_server"],
+      "enabled": true
     }
   }
 }
