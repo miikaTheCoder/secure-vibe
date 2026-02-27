@@ -245,7 +245,7 @@ EOF
     "secure_vibe": {
       "type": "local",
       "command": ["$VENV_PYTHON", "-m", "src.mcp_server"],
-      "cwd": "$WORKING_DIR",
+      
       "enabled": true
     }
   }
